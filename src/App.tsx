@@ -19,6 +19,20 @@ import { Box, Layers, PhoneCall } from "lucide-react";
 
 const LICENSE_STORAGE_KEY = "secure_license_key";
 const LICENSE_NAME_KEY = "secure_license_customer";
+const LICENSE_DEVICE_KEY = "secure_license_device_id";
+const LICENSE_API_BASE_URL = (
+  import.meta.env.VITE_LICENSE_API_URL ||
+  (import.meta.env.DEV ? "http://localhost:4000/api" : "/api")
+).replace(/\/+$/, "");
+
+const getLicenseDeviceId = () => {
+  let deviceId = window.localStorage.getItem(LICENSE_DEVICE_KEY);
+  if (!deviceId) {
+    deviceId = window.crypto.randomUUID();
+    window.localStorage.setItem(LICENSE_DEVICE_KEY, deviceId);
+  }
+  return deviceId;
+};
 
 export default function App() {
   const [licenseKeyInput, setLicenseKeyInput] = useState<string>("");
@@ -42,13 +56,11 @@ export default function App() {
   }, []);
 
   const verifyStoredLicense = async (licenseKey: string) => {
-    const deviceId = `desktop-app-${navigator.userAgent}-${screen.width}x${screen.height}`;
-
     try {
-      const response = await fetch("http://localhost:4000/api/licenses/verify", {
+      const response = await fetch(`${LICENSE_API_BASE_URL}/licenses/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ licenseKey, deviceId }),
+        body: JSON.stringify({ licenseKey, deviceId: getLicenseDeviceId() }),
       });
 
       const data = await response.json();
@@ -61,10 +73,6 @@ export default function App() {
     } catch (error) {
       setActivationError(error instanceof Error ? error.message : "License invalid");
       setIsLicenseActive(false);
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem(LICENSE_STORAGE_KEY);
-        window.localStorage.removeItem(LICENSE_NAME_KEY);
-      }
     }
   };
 
@@ -82,11 +90,10 @@ export default function App() {
     setActivationError("");
 
     try {
-      const deviceId = `desktop-app-${navigator.userAgent}-${screen.width}x${screen.height}`;
-      const response = await fetch("http://localhost:4000/api/licenses/verify", {
+      const response = await fetch(`${LICENSE_API_BASE_URL}/licenses/activate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ licenseKey: trimmedKey, deviceId }),
+        body: JSON.stringify({ licenseKey: trimmedKey, deviceId: getLicenseDeviceId() }),
       });
 
       const data = await response.json();
@@ -393,7 +400,7 @@ export default function App() {
                 value={licenseKeyInput}
                 onChange={(event) => setLicenseKeyInput(event.target.value)}
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-3 text-white outline-none placeholder:text-slate-500"
-                placeholder="LIC-XXXX-XXXX-XXXX"
+                placeholder="Enter the complete license key"
               />
             </div>
 
@@ -414,7 +421,7 @@ export default function App() {
 
           <div className="mt-6 rounded-xl border border-slate-700 bg-slate-950/60 p-3 text-xs text-slate-300">
             <div className="font-semibold text-slate-100">Demo license</div>
-            <div className="mt-1">Use a valid key generated from the admin dashboard at http://localhost:4000/admin.</div>
+            <div className="mt-1">Use a valid license key issued by the license administrator.</div>
           </div>
         </div>
       </div>

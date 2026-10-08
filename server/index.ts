@@ -78,8 +78,9 @@ const calculateExpiry = (licenseType: keyof typeof LICENSE_TYPES, activationDate
 };
 
 const makeLicenseKey = () => {
-  const random = crypto.randomBytes(8).toString('hex').slice(0, 12).toUpperCase();
-  return `LIC-${random.slice(0, 4)}-${random.slice(4, 8)}-${random.slice(8, 12)}`;
+  const random = crypto.randomBytes(16).toString('hex').toUpperCase();
+  const groups = random.match(/.{4}/g) ?? [];
+  return `LIC-${groups.join('-')}`;
 };
 
 const getDeviceId = () => {

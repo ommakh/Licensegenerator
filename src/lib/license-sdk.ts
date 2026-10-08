@@ -29,7 +29,7 @@ export interface LicenseVerificationResult {
 export class SecureLicenseClient {
   private readonly baseUrl: string;
 
-  constructor(baseUrl = 'http://localhost:4000/api') {
+  constructor(baseUrl = import.meta.env.VITE_LICENSE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api')) {
     this.baseUrl = baseUrl.replace(/\/$/, '');
   }
 
@@ -69,12 +69,9 @@ export class SecureLicenseClient {
   }
 
   async getLicenseInfo(licenseKey: string): Promise<LicenseRecord> {
-    const response = await fetch(`${this.baseUrl}/licenses`);
-    if (!response.ok) throw new Error('Unable to load licenses');
-    const data = await response.json();
-    const found = (data.licenses as LicenseRecord[]).find((item) => item.licenseKey === licenseKey);
-    if (!found) throw new Error('License not found');
-    return found;
+    const result = await this.verifyLicense(licenseKey, getDeviceFingerprint());
+    if (result.status !== 'valid' || !result.license) throw new Error(result.message);
+    return result.license;
   }
 
   async getRemainingDays(licenseKey: string): Promise<number> {

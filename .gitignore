@@ -3,4 +3,9 @@ dist
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
 .DS_Store
+.netlify
+server/keys/
+server/data/

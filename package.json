@@ -9,11 +9,13 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
+    "test:licenses": "tsx --test netlify/functions/licenses.test.ts",
     "license-server": "tsx server/index.ts",
     "generate-license-keys": "tsx scripts/generate-keys.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
+    "@netlify/blobs": "^11.1.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "dotenv": "^17.2.3",
