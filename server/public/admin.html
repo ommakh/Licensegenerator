@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>License Admin Dashboard</title>
+    <style>
+      :root { --bg: #0f172a; --card:#111827; --muted:#94a3b8; --accent:#22c55e; --text:#e5e7eb; --danger:#ef4444; --warning:#f59e0b; }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family: Arial, sans-serif; background: linear-gradient(135deg,#020817,#0f172a); color:var(--text); }
+      .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px 80px; }
+      .topbar { display:flex; justify-content: space-between; align-items:center; margin-bottom:24px; }
+      .cards { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px; }
+      .card { background: rgba(17,24,39,0.9); border:1px solid rgba(148,163,184,0.2); border-radius: 16px; padding: 18px; }
+      .card h3 { margin:0 0 10px; font-size: 14px; color:var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+      .card .num { font-size: 28px; font-weight:700; }
+      .grid { display:grid; grid-template-columns: 1.1fr 2fr; gap: 20px; }
+      form { background: rgba(17,24,39,0.9); padding: 20px; border-radius:16px; border:1px solid rgba(148,163,184,0.2); }
+      label { display:block; margin-bottom:10px; color:var(--muted); font-size: 13px; }
+      input, select, textarea, button { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(148,163,184,0.3); background:#0b1120; color:var(--text); margin-top:6px; }
+      button { background: var(--accent); color:#022c22; border:none; font-weight:700; cursor:pointer; }
+      button.secondary { background:#0ea5e9; color:white; }
+      button.danger { background: var(--danger); color:white; }
+      .panel { background: rgba(17,24,39,0.9); padding: 20px; border-radius:16px; border:1px solid rgba(148,163,184,0.2); }
+      table { width:100%; border-collapse: collapse; margin-top: 16px; }
+      th, td { padding: 12px 10px; border-bottom:1px solid rgba(148,163,184,0.15); text-align:left; font-size: 13px; }
+      th { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+      .status { display:inline-block; padding: 6px 10px; border-radius:999px; font-size: 11px; font-weight:700; }
+      .status.active { background: rgba(34,197,94,0.12); color:#86efac; }
+      .status.expired { background: rgba(245, 158, 11, 0.12); color:#fbbf24; }
+      .status.revoked { background: rgba(239,68,68,0.12); color:#fca5a5; }
+      .message { margin-top:14px; min-height: 20px; color:#86efac; }
+      .message.error { color:#fca5a5; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="topbar">
+        <div>
+          <h1>License Management Dashboard</h1>
+        </div>
+        <button class="secondary" onclick="loadLicenses()">Refresh Data</button>
+      </div>
+
+      <div class="cards">
+        <div class="card"><h3>Total Licenses</h3><div id="totalLicenses" class="num">0</div></div>
+        <div class="card"><h3>Active</h3><div id="activeLicenses" class="num">0</div></div>
+        <div class="card"><h3>Expired</h3><div id="expiredLicenses" class="num">0</div></div>
+        <div class="card"><h3>Revoked</h3><div id="revokedLicenses" class="num">0</div></div>
+      </div>
+
+      <div class="grid">
+        <form id="licenseForm">
+          <h2>Generate License</h2>
+          <label>Customer Name<input name="customerName" value="Demo Customer" required /></label>
+          <label>Email<input name="email" type="email" value="demo@securelic.com" required /></label>
+          <label>Product Name<input name="productName" value="Secure Desktop App" required /></label>
+          <label>License Type<select name="licenseType"><option value="monthly">Monthly (30 days)</option><option value="quarterly">Quarterly (90 days)</option><option value="yearly">Yearly (365 days)</option></select></label>
+          <label>Max Activations<input name="maxActivations" type="number" min="1" value="1" /></label>
+          <label>Notes<textarea name="notes">Internal test license</textarea></label>
+          <button type="submit">Generate License</button>
+          <div id="generateMessage" class="message"></div>
+        </form>
+
+        <div class="panel">
+          <h2>Licensed Devices</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>License Key</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Expiry</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="licenseTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API = 'http://localhost:4000/api';
+
+      async function apiRequest(path, options = {}) {
+        const response = await fetch(`${API}${path}`, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options,
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Request failed');
+        return payload;
+      }
+
+      function renderSummary(licenses) {
+        document.getElementById('totalLicenses').textContent = licenses.length;
+        document.getElementById('activeLicenses').textContent = licenses.filter(l => l.status === 'active').length;
+        document.getElementById('expiredLicenses').textContent = licenses.filter(l => l.status === 'expired').length;
+        document.getElementById('revokedLicenses').textContent = licenses.filter(l => l.status === 'revoked').length;
+      }
+
+      function renderTable(licenses) {
+        const tbody = document.getElementById('licenseTableBody');
+        tbody.innerHTML = licenses.map((license) => `
+          <tr>
+            <td>${license.licenseKey}</td>
+            <td>${license.customerName}<br><small>${license.email}</small></td>
+            <td>${license.licenseType}</td>
+            <td>${new Date(license.expiresAt).toLocaleDateString()}</td>
+            <td><span class="status ${license.status}">${license.status}</span></td>
+            <td>
+              <button class="secondary" onclick="verifyLicense('${license.licenseKey}')">Verify</button>
+              <button class="danger" onclick="revokeLicense('${license.licenseKey}')">Revoke</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async function loadLicenses() {
+        try {
+          const response = await apiRequest('/licenses');
+          renderSummary(response.licenses);
+          renderTable(response.licenses);
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      document.getElementById('licenseForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const payload = Object.fromEntries(formData.entries());
+        const messageEl = document.getElementById('generateMessage');
+
+        try {
+          const result = await apiRequest('/licenses/generate', { method: 'POST', body: JSON.stringify(payload) });
+          messageEl.textContent = `License created: ${result.license.licenseKey}`;
+          messageEl.classList.remove('error');
+          await loadLicenses();
+        } catch (error) {
+          messageEl.textContent = error.message;
+          messageEl.classList.add('error');
+        }
+      });
+
+      async function verifyLicense(licenseKey) {
+        const payload = { licenseKey, deviceId: 'admin-browser-sample-device' };
+        try {
+          const result = await apiRequest('/licenses/verify', { method: 'POST', body: JSON.stringify(payload) });
+          alert(result.message + ' - Remaining Days: ' + result.remainingDays);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      async function revokeLicense(licenseKey) {
+        try {
+          const result = await apiRequest('/licenses/revoke', { method: 'POST', body: JSON.stringify({ licenseKey }) });
+          alert(result.message);
+          await loadLicenses();
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+      loadLicenses();
+    </script>
+  </body>
+</html>

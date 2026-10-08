@@ -1,0 +1,55 @@
+[
+  {
+    "id": "7be8c818-c55b-4e6f-8722-d8a6ec8ae578",
+    "action": "seed_demo_license",
+    "entityType": "license",
+    "entityId": "db75ac5a-e7eb-4989-99e4-efc29295a8b8",
+    "details": {
+      "licenseKey": "LIC-3F46-EE48-A660"
+    },
+    "timestamp": "2026-10-02T12:33:38.770Z"
+  },
+  {
+    "id": "b4b897b8-7749-4216-bbdc-82974d4e3663",
+    "action": "generate_license",
+    "entityType": "license",
+    "entityId": "fdc3f4e1-ea08-4e05-aca1-026038f135bf",
+    "details": {
+      "customerEmail": "demo@securelic.com",
+      "licenseType": "monthly"
+    },
+    "timestamp": "2026-10-02T12:42:28.896Z"
+  },
+  {
+    "id": "f28c4aaf-f8e1-43aa-a724-d2d63b6366ab",
+    "action": "revoke_license",
+    "entityType": "license",
+    "entityId": "fdc3f4e1-ea08-4e05-aca1-026038f135bf",
+    "details": {
+      "licenseKey": "LIC-E53F-B154-0A45"
+    },
+    "timestamp": "2026-10-02T12:42:43.195Z"
+  },
+  {
+    "id": "60dc57bb-d5ba-4462-bf73-04929137389b",
+    "action": "generate_license",
+    "entityType": "license",
+    "entityId": "a8ecd7be-75c8-4f06-be59-3b086b2c54cb",
+    "details": {
+      "customerEmail": "camtech@securelic.com",
+      "licenseType": "quarterly"
+    },
+    "timestamp": "2026-10-02T13:22:34.935Z"
+  },
+  {
+    "id": "5d2285a8-efe5-4bfb-9f40-63bb469c5e85",
+    "action": "generate_license",
+    "entityType": "license",
+    "entityId": "b79e3a69-c956-4f27-bbce-5d49dfd9989f",
+    "details": {
+      "customerEmail": "ashish@securelic.com",
+      "licenseType": "monthly"
+    },
+    "timestamp": "2026-10-07T11:11:34.894Z"
+  }
+]

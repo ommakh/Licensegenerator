@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  header, footer, nav, .print\:hidden {
+    display: none !important;
+  }
+
+  #quotation-print-sheet {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Make all inputs on the quotation sheet look like pure typography in print */
+  #quotation-print-sheet input,
+  #quotation-print-sheet textarea {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    color: inherit !important;
+  }
+}

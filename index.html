@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      // Defensive fix for environments/iframes where window.fetch is configured with getter-only
+      (function() {
+        try {
+          var _fetch = window.fetch;
+          var winDesc = Object.getOwnPropertyDescriptor(window, 'fetch');
+          var protoDesc = typeof Window !== 'undefined' && Window.prototype ? Object.getOwnPropertyDescriptor(Window.prototype, 'fetch') : null;
+          var desc = winDesc || protoDesc;
+          if (!desc || !desc.set || desc.writable === false) {
+            Object.defineProperty(window, 'fetch', {
+              get: function() {
+                return _fetch;
+              },
+              set: function(val) {
+                _fetch = val;
+              },
+              configurable: true,
+              enumerable: true,
+            });
+          }
+        } catch (e) {
+          // Ignore if already configured or unconfigurable
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wooden Crate Configurator</title>
+    <meta name="description" content="5-Step Wooden Crate & Pallet Configurator, Component L×B×H Inputs, Interactive 3D Exploded Viewer with Hover CFT, Wood Rates & Quotation Generator." />
+    <meta property="og:title" content="Wooden Crate Configurator" />
+    <meta property="og:description" content="5-Step Wooden Crate & Pallet Configurator, Component L×B×H Inputs, Interactive 3D Exploded Viewer with Hover CFT, Wood Rates & Quotation Generator." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body class="bg-zinc-100 text-zinc-900 m-0 p-0 overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
